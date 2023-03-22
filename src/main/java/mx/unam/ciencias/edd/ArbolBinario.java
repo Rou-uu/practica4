@@ -425,13 +425,13 @@ public abstract class ArbolBinario<T> implements Coleccion<T> {
                     r += "└─";
 
             if (temp.padre.izquierdo == temp)
-                r += "›" + temp.elemento + "\n";
+                r += "›" + temp.toString() + "\n";
 
             else
-                r += "»" + temp.elemento + "\n";
+                r += "»" + temp.toString() + "\n";
         }
         else
-            r = temp.elemento.toString() + "\n";
+            r = temp.toString() + "\n";
 
         String a = "", b = "";
 

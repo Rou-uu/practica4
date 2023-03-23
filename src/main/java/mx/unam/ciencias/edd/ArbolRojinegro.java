@@ -354,6 +354,13 @@ public class ArbolRojinegro<T extends Comparable<T>>
 
             else
                 super.giraDerecha(padre);
+
+            abuelo = getAbuelo(vertice);
+            hermano = getHermano(vertice);
+            sobrinoI = getHijoI(hermano);
+            sobrinoD = getHijoD(hermano);
+            abuelo = getAbuelo(vertice);
+            tio = getTio(vertice);
         }
 
         if (padre.color == Color.NEGRO && hermano.color == Color.NEGRO && (sobrinoD == null || sobrinoD.color == Color.NEGRO) && 
@@ -364,45 +371,49 @@ public class ArbolRojinegro<T extends Comparable<T>>
             return;
         }
 
-        if (padre.color == Color.ROJO && hermano.color == Color.NEGRO && sobrinoD.color == Color.NEGRO && sobrinoI.color == Color.NEGRO) { //Todos negros menos el padre
+        if (padre.color == Color.ROJO && hermano.color == Color.NEGRO && (sobrinoD == null || sobrinoD.color == Color.NEGRO) && (sobrinoI == null || sobrinoI.color == Color.NEGRO)) { //Todos negros menos el padre
 
             padre.color = Color.NEGRO;
             hermano.color = Color.ROJO;
             return;
         }
 
-        if ((left(vertice) && sobrinoI.color == Color.ROJO && sobrinoD.color == Color.NEGRO) || (!left(vertice) && 
-            sobrinoI.color == Color.NEGRO && sobrinoD.color == Color.ROJO)) {
+        if ((left(vertice) && (sobrinoI != null && sobrinoI.color == Color.ROJO) && (sobrinoD == null || sobrinoD.color == Color.NEGRO)) || (!left(vertice) && 
+            (sobrinoI == null || sobrinoI.color == Color.NEGRO) && (sobrinoD != null && sobrinoD.color == Color.ROJO))) {
 
             hermano.color = Color.ROJO;
 
-            if (sobrinoD.color == Color.ROJO)
+            if (sobrinoD != null && sobrinoD.color == Color.ROJO)
                 sobrinoD.color = Color.NEGRO;
 
-            else if (sobrinoI.color == Color.ROJO)
+            else if (sobrinoI != null && sobrinoI.color == Color.ROJO)
                 sobrinoI.color = Color.NEGRO;
 
-            if (left(vertice)) {
+            if (left(vertice))
                 super.giraDerecha(hermano);
-                VerticeRojinegro aux = hermano;
-                hermano = sobrinoI;
-                sobrinoI = aux;
-            } else {
+            
+            else
                 super.giraIzquierda(hermano);
-                VerticeRojinegro aux = hermano;
-                hermano = sobrinoD;
-                sobrinoD = aux;
-            }
+            
+
+            abuelo = getAbuelo(vertice);
+            hermano = getHermano(vertice);
+            sobrinoI = getHijoI(hermano);
+            sobrinoD = getHijoD(hermano);
+            abuelo = getAbuelo(vertice);
+            tio = getTio(vertice);
         }
 
         hermano.color = padre.color;
         padre.color = Color.NEGRO;
         if (left(vertice)) {
-            sobrinoD.color = Color.NEGRO;
+            if (sobrinoD != null)
+                sobrinoD.color = Color.NEGRO;
         }
 
         else if (!left(vertice)) {
-            sobrinoI.color = Color.NEGRO;
+            if (sobrinoI != null)
+                sobrinoI.color = Color.NEGRO;
         }
 
         if (left(vertice))

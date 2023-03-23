@@ -29,14 +29,8 @@ public abstract class ArbolBinario<T> implements Coleccion<T> {
          * @param elemento el elemento del vértice.
          */
         protected Vertice(T elemento) {
-            // Aquí va su código.
-            if (elemento == null)
-                throw new IllegalArgumentException();
-
+            // Aquí va su código
             this.elemento = elemento;
-            this.padre = null;
-            this.izquierdo = null;
-            this.derecho = null; 
         }
 
         /**
@@ -243,6 +237,9 @@ public abstract class ArbolBinario<T> implements Coleccion<T> {
      */
     protected Vertice nuevoVertice(T elemento) {
         // Aquí va su código.
+        if (elemento == null)
+            throw new IllegalArgumentException();
+
         return new Vertice(elemento);
     }
 

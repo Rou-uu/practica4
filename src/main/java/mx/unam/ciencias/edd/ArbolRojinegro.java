@@ -232,6 +232,184 @@ public class ArbolRojinegro<T extends Comparable<T>>
      */
     @Override public void elimina(T elemento) {
         // Aquí va su código.
+        VerticeRojinegro eliminar = (VerticeRojinegro) busca(elemento);
+        if (eliminar == null) //No se elimina pq no se encontró
+            return;
+
+        if (eliminar == raiz && elementos == 1) {
+            limpia();
+        }
+
+        VerticeRojinegro intercambiado = (VerticeRojinegro) intercambiaEliminable(eliminar);
+
+        if (necesitaFantasma(intercambiado))
+            agregaFantasma(intercambiado);
+
+        int chingchung = getCase(intercambiado);
+
+        VerticeRojinegro hijo = null;
+
+        //Para este momento, intercambiado tiene exactamente un unico hijo (ya sea el fantasma o porq es máximo o mínimo del subárbol)
+        switch(chingchung) {
+            case 1:
+                if (intercambiado.izquierdo != null)
+                    hijo = (VerticeRojinegro) intercambiado.izquierdo;
+
+                else
+                    hijo = (VerticeRojinegro) intercambiado.derecho;
+
+                eliminaVertice(intercambiado);
+                hijo.color = Color.NEGRO; //Creo que falta borrar fantasma
+
+                if (hijo != null && hijo.elemento == null) {
+                    if (left(hijo)) {
+                        hijo.padre.izquierdo = null;
+                    } else {
+                        hijo.padre.derecho = null;
+                    }
+                }
+                break;
+
+            case 2:
+                VerticeRojinegro fant = (VerticeRojinegro) intercambiado.izquierdo;
+
+                eliminaVertice(intercambiado);
+
+                if (fant != null && fant.elemento == null) {
+                    if (left(fant)) {
+                        fant.padre.izquierdo = null;
+                    } else {
+                        fant.padre.derecho = null;
+                    }
+                }
+
+                break;
+
+            case 3: //Hay que rebalancear pq aqui metimos un fantasma o tiene un hijo negro
+                VerticeRojinegro posFantasma = null;
+
+                //Primero guardamos la referencia del fantasma para no perderlo después
+                if (intercambiado.izquierdo != null) {
+                    posFantasma = (VerticeRojinegro) intercambiado.izquierdo;
+                }
+
+                else
+                    posFantasma = (VerticeRojinegro) intercambiado.derecho;
+
+                //Entrar al caso de rebalanceo y eliminación
+                eliminaVertice(intercambiado);
+                rebalanceaEliminar(posFantasma);
+
+                //Borramos el fantasma
+                if (posFantasma.get() == null && posFantasma.padre != null) {
+                    if (left(posFantasma)) {
+                        posFantasma.padre.izquierdo = null;
+                    } else {
+                        posFantasma.padre.derecho = null;
+                    }
+                } else {
+                    limpia();
+                }
+        }
+
+
+    }
+
+    private int getCase(VerticeRojinegro v) { //Caso 1, v es negro y h rojo. Caso 2, v es rojo y h negro. Caso 3 (necesita rebalancear), ambos vertices son negros
+        VerticeRojinegro h = null;
+
+        if (getHijoI(v) != null)
+            h = getHijoI(v);
+
+        else
+            h = getHijoD(v);
+
+        if (h.color == Color.ROJO && v.color == Color.NEGRO)
+            return 1;
+        
+
+        if (h.color == Color.NEGRO && v.color == Color.ROJO)
+            return 2;
+
+        return 3;
+    }
+
+    private void rebalanceaEliminar(VerticeRojinegro vertice) { //Vemos 6 casos
+        VerticeRojinegro padre = getPadre(vertice);
+        VerticeRojinegro hermano = getHermano(vertice);
+        VerticeRojinegro sobrinoI = getHijoI(hermano);
+        VerticeRojinegro sobrinoD = getHijoD(hermano);
+        VerticeRojinegro abuelo = getAbuelo(vertice);
+        VerticeRojinegro tio = getTio(vertice);
+
+        if (padre == null)
+            return;
+
+        else if (hermano.color == Color.ROJO && padre.color == Color.NEGRO) {
+            hermano.color = Color.NEGRO;
+            padre.color = Color.ROJO;
+
+            if (left(vertice))
+                super.giraIzquierda(padre);
+
+            else
+                super.giraDerecha(padre);
+        }
+
+        if (padre.color == Color.NEGRO && hermano.color == Color.NEGRO && (sobrinoD == null || sobrinoD.color == Color.NEGRO) && 
+            (sobrinoI == null || sobrinoI.color == Color.NEGRO)) { //Es decir, todos son negros
+
+            hermano.color = Color.ROJO;
+            rebalanceaEliminar(padre);
+            return;
+        }
+
+        if (padre.color == Color.ROJO && hermano.color == Color.NEGRO && sobrinoD.color == Color.NEGRO && sobrinoI.color == Color.NEGRO) { //Todos negros menos el padre
+
+            padre.color = Color.NEGRO;
+            hermano.color = Color.ROJO;
+            return;
+        }
+
+        if ((left(vertice) && sobrinoI.color == Color.ROJO && sobrinoD.color == Color.NEGRO) || (!left(vertice) && 
+            sobrinoI.color == Color.NEGRO && sobrinoD.color == Color.ROJO)) {
+
+            hermano.color = Color.ROJO;
+
+            if (sobrinoD.color == Color.ROJO)
+                sobrinoD.color = Color.NEGRO;
+
+            else if (sobrinoI.color == Color.ROJO)
+                sobrinoI.color = Color.NEGRO;
+
+            if (left(vertice)) {
+                super.giraDerecha(hermano);
+                VerticeRojinegro aux = hermano;
+                hermano = sobrinoI;
+                sobrinoI = aux;
+            } else {
+                super.giraIzquierda(hermano);
+                VerticeRojinegro aux = hermano;
+                hermano = sobrinoD;
+                sobrinoD = aux;
+            }
+        }
+
+        hermano.color = padre.color;
+        padre.color = Color.NEGRO;
+        if (left(vertice)) {
+            sobrinoD.color = Color.NEGRO;
+        }
+
+        else if (!left(vertice)) {
+            sobrinoI.color = Color.NEGRO;
+        }
+
+        if (left(vertice))
+            super.giraIzquierda(padre);
+
+        else
+            super.giraDerecha(padre);
     }
 
     /**
@@ -340,6 +518,42 @@ public class ArbolRojinegro<T extends Comparable<T>>
             return (VerticeRojinegro) getPadre(r).padre;
 
         return null;
+    }
+
+    //Metodos auxiliares para eliminar
+    private boolean necesitaFantasma(VerticeRojinegro r) {
+        if (r != null)
+            if (r.izquierdo == null && r.derecho == null)
+                return true;
+
+        return false;
+    }
+
+    private void agregaFantasma(VerticeRojinegro r) {
+        if (r != null && necesitaFantasma(r)) {
+            VerticeRojinegro n = new VerticeRojinegro(null);
+            n.color = Color.NEGRO;
+            r.izquierdo = n;
+            n.padre = r;
+        }
+    }
+
+    private void eliminaFantasma(VerticeRojinegro r) {
+        if (r == null)
+            return;
+
+        if (r.izquierdo == null && r.derecho == null)
+            return;
+
+        if (r.izquierdo != null && r.izquierdo.elemento == null) {
+            r.izquierdo = null;
+            return;
+        }
+
+        else if (r.derecho != null && r.derecho.elemento == null)
+            r.derecho = null;
+
+        r.derecho = null;
     }
 
 }
